@@ -1,0 +1,19 @@
+services:
+  nessus:
+    restart: no
+    build:
+      context: ./config
+      dockerfile: nessus.dockerfile
+      args:
+        - NESSUS_VERSION=latest-ubuntu
+    image: x01/nessus:latest-ubuntu
+    hostname: nessus
+    container_name: nessus
+    networks:
+      nessus_net:
+    ports:
+      - 8834:8834
+
+networks:
+  nessus_net:
+    name: nessus_net
