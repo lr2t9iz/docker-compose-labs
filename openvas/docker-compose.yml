@@ -1,0 +1,19 @@
+services:
+  openvas:
+    restart: no
+    build:
+      context: ./config
+      dockerfile: openvas.dockerfile
+      args:
+        - OPENVAS_VERSION=latest
+    image: x01/openvas:latest
+    hostname: openvas
+    container_name: openvas
+    networks:
+      openvas_net:
+    ports: 
+      - 443:443
+
+networks:
+  openvas_net:
+    name: openvas_net
