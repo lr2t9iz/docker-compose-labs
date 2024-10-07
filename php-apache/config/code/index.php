@@ -1,3 +1,5 @@
+// Testing File Inclusion vuln
+
 <?php
 $page = $_GET['page'];
 include($page);
