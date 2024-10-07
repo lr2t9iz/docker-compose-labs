@@ -1,0 +1,19 @@
+services:
+  php:
+    restart: no
+    build:
+      context: ./config/
+      dockerfile: php.dockerfile
+      args:
+        - PHP_VERSION=7.4-apache
+    image: x01/php:7.4-apache
+    hostname: php
+    container_name: php
+    networks:
+      php_net:
+    ports:
+      - 8080:80
+
+networks:
+  php_net:
+    name: php_net
