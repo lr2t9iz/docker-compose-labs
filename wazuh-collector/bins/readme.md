@@ -1,0 +1,2 @@
+# 
+- Download wazuh agent here

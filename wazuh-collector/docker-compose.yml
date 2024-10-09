@@ -1,0 +1,21 @@
+services:
+  wazuh.collector-1:
+    restart: no
+    build:
+      context: ./config
+      dockerfile: wagent.dockerfile
+    image: x01/wazuh-agent:4.3.6
+    hostname: wazuh.collector-1
+    container_name: wazuh.collector-1
+    volumes:
+      - eventlogs:/var/log/eventlogs/
+    networks:
+      wazuh_collector_net:
+
+volumes:
+  eventlogs:
+    name: eventlogs
+
+networks:
+  wazuh_collector_net:
+    name: wazuh_collector_net
