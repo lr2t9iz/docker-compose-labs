@@ -1,0 +1,120 @@
+
+services:
+  elasticsearch:
+    restart: always
+    build:
+      context: ./config/elasticsearch
+      dockerfile: elasticsearch.dockerfile
+      args:
+        - STACK_VERSION=${STACK_VERSION}
+    image: x01/elasticsearch:${STACK_VERSION}
+    hostname: elasticsearch
+    container_name: elasticsearch
+    volumes:
+      - ./scripts/:/t3mp/scripts/
+      - elasticsearch_data:/usr/share/elasticsearch/data/
+      - elasticsearch_etc:/usr/share/elasticsearch/config/
+    networks:
+      elastic_net:
+        # ipv4_address: 172.22.0.2
+    ports: 
+      - 9200:9200
+    environment:
+      - ELASTIC_PASSWORD=${ES_PASS}
+      - KIBANA_PASSWORD=${KBN_PASS}
+      - CLUSTER_NAME=${CLUSTER_NAME}
+      - "ES_JAVA_OPTS=-Xms${JAVA_HEAP} -Xmx${JAVA_HEAP}"
+
+  kibana:
+    restart: always
+    depends_on:
+      - elasticsearch
+    build:
+      context: ./config/kibana
+      dockerfile: kibana.dockerfile
+      args:
+        - STACK_VERSION=${STACK_VERSION}
+    image: x01/kibana:${STACK_VERSION}
+    hostname: kibana
+    container_name: kibana
+    volumes:
+      - ./scripts/:/t3mp/scripts/
+      - kibana_etc:/usr/share/kibana/config/
+    networks:
+      elastic_net:
+        # ipv4_address: 172.22.0.3
+    ports:
+      - 5601:5601
+    environment:
+      SERVER_NAME: kibana
+      ELASTICSEARCH_HOSTS: '["https://elasticsearch:9200"]'
+      KIBANA_PASSWORD: ${KBN_PASS}
+
+  logstash:
+    profiles: 
+      - optional
+    restart: always
+    depends_on:
+      - kibana
+    build:
+      context: ./config/logstash
+      dockerfile: logstash.dockerfile
+      args:
+        - STACK_VERSION=${STACK_VERSION}
+    image: x01/logstash:${STACK_VERSION}
+    hostname: logstash
+    container_name: logstash
+    volumes:
+      - logstash_etc:/usr/share/logstash/config/
+    networks:
+      elastic_net:
+        # ipv4_address: 172.22.0.5
+    ports:
+      - 5044:5044
+
+  fleet:
+    profiles: 
+      - optional
+    restart: always
+    depends_on:
+      - kibana
+    build:
+      context: ./config/fleet
+      dockerfile: fleet.dockerfile
+      args:
+        - STACK_VERSION=${STACK_VERSION}
+    image: x01/fleet:${STACK_VERSION}
+    hostname: fleet
+    container_name: fleet
+    volumes:
+      - ./scripts/:/t3mp/scripts/
+    networks:
+      elastic_net:
+        # ipv4_address: 172.22.0.5
+    ports:
+      - 8220:8220
+    environment:
+      STACK_VERSION: ${STACK_VERSION}
+
+volumes:
+  elasticsearch_data:
+    name: elasticserch_data
+  elasticsearch_etc:
+    name: elasticserch_etc
+    # driver_opt:
+    #   o: bind
+    #   type: none
+    #   device: /data/data
+  kibana_etc:
+    name: kibana_etc
+  logstash_etc:
+    name: logstash_etc
+
+networks:
+  elastic_net:
+    name: elastic_net
+    # driver: bridge
+    # ipam:
+    # config:
+    #  - subnet: 172.22.0.0/16
+    #    gateway: 172.22.0.1
