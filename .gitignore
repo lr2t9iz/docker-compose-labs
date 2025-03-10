@@ -1,2 +1,6 @@
 .env
 t3mp/
+
+# certs
+*.pem
+*.key
